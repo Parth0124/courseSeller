@@ -65,6 +65,24 @@ app.post('/admin/courses', adminAuthentication, (req,res) => {
     }
 });
 
+app.put('/admin/courses/:courseId', adminAuthentication, (req,res) => {
+    const courseId = Number(req.params.courseId);
+    const course = COURSES.find(c => c.id === courseId);
+    if(course)
+        {
+            Object.assign(course,req.body);
+            res.json({message: "Course Updated Successfully"})
+        }
+    else
+        {
+            res.status(404).json({message: "Course not found"})
+        }
+});
+
+app.get('/admin/courses', adminAuthentication, (req,res) => {
+    res.json({courses: COURSES})
+})
+
 app.listen(3000, () => {
     console.log("Server is listening on port 3000")
 });
