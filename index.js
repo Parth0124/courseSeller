@@ -51,6 +51,10 @@ app.post('/admin/login',  adminAuthentication, (req,res) => {  //adminAuthentica
     res.json({message: "Logged in successfully"});
 });
 
+app.get('admin', adminAuthentication, (req,res) => {
+    res.json({admin_list: ADMINS })
+})
+
 app.post('/admin/courses', adminAuthentication, (req,res) => {
     const course = req.body;
     if(!course.title || !course.description || !course.duration || !course.price || !course.gallery)
@@ -82,6 +86,16 @@ app.put('/admin/courses/:courseId', adminAuthentication, (req,res) => {
 app.get('/admin/courses', adminAuthentication, (req,res) => {
     res.json({courses: COURSES})
 })
+
+app.post('users/signup', (req,res) => {
+    const user = {...req.body, purchasedCourses:[]};  //this is line is same as username:req.body.username and password: req.body.passwrod
+    USERS.push(user);
+    res.json({message: "User created successfully"})
+});
+
+app.post ('users/login', userAuthentication, (req,res) => {
+    res.json({message: "User logged in successfully"})
+});
 
 app.listen(3000, () => {
     console.log("Server is listening on port 3000")
