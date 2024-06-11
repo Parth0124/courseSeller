@@ -18,10 +18,10 @@ const adminAuthentication = (req,res,next) => {
         {
             res.status(403).json({message: "Admin authentication failed."})
         }
-}
+};
 
 const userAuthentication = (req,res,next) => {
-    const { username,password } = req.headers;
+    const { username,password } = req.headers; //const username = req.headers.username and const password = req.headers.password
     const user = USERS.find(u => u.username === username && u.password === password)
     if(user)
         {
@@ -32,7 +32,7 @@ const userAuthentication = (req,res,next) => {
         {
             res.status(403).json({message: "User authentication failed."})
         }
-}
+};
 
 app.post('/admin/signup', (req, res) => {
     const admin = req.body;
@@ -51,4 +51,6 @@ app.post('/admin/login',  adminAuthentication, (req,res) => {  //adminAuthentica
     res.json({message: "Logged in successfully"});
 });
 
-app.listen(3000);
+app.listen(3000, () => {
+    console.log("Server is listening on port 3000")
+});
