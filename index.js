@@ -20,4 +20,8 @@ app.post('/admin/signup', (req, res) => {
         }
 });
 
+app.post('/admin/login',  adminAuthentication, (req,res) => {
+    res.json({message: "Logged in successfully"});
+});
+
 app.listen(3000);
