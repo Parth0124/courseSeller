@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');  //import jsonwebtoken 
 const app = express();
 
 app.use(express.json());
@@ -7,6 +8,35 @@ let ADMINS = [];  // array of admins
 let USERS = [];   // array of users
 let COURSES = []; // array of courses
 
+const secret = "keyForEncryption";  //secret key for encryption
+
+const generateJwt = (user) => {
+    const payload = { username: user.username};
+    return jwt.sign(payload, secret, {expiresIn: '1h'});
+};
+
+const authenticateJwt = (req,res,next) => {
+    const authHeader = req.headers.authorization;
+
+    if(authHeader)
+        {
+            const token = authHeader.split(' ')[1];
+
+            jwt.verify(token,secret, (err,user) => {
+                if(err) 
+                {
+                    return res.sendStatus(403)
+                }
+                req.user = user;
+                next();
+            })
+        }
+        else 
+        {
+            res.sendStatus(401);
+        }
+};
+ 
 const adminAuthentication = (req, res, next) => {
     const { username, password } = req.headers;
     const admin = ADMINS.find(a => a.username === username && a.password === password);
