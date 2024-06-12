@@ -32,23 +32,15 @@ const authenticateJwt = (req, res, next) => {
     }
 };
 
-const userAuthentication = (req, res, next) => {
-    const { username, password } = req.headers;
-    const user = USERS.find(u => u.username === username && u.password === password);
-    if (user) {
-        req.user = user;
-        next();
-    } else {
-        res.status(403).json({ message: "User authentication failed." });
-    }
-};
-
 app.post('/admins/signup', (req, res) => {
     const admin = req.body;
     const existingAdmin = ADMINS.find(a => a.username === admin.username);
-    if (existingAdmin) {
+    if (existingAdmin) 
+    {
         res.status(403).json({ message: "Admin already exists" });
-    } else {
+    } 
+    else 
+    {
         ADMINS.push(admin);
         const token = generateJwt(admin);
         res.json({ message: "Admin created successfully", token });
@@ -61,7 +53,9 @@ app.post('/admins/login', (req, res) => {
     if (admin) {
         const token = generateJwt(admin);
         res.json({ message: "Admin logged in successfully", token });
-    } else {
+    } 
+    else 
+    {
         res.status(403).json({ message: "Admin authentication failed" });
     }
 });
@@ -74,16 +68,22 @@ app.post('/admins/courses', authenticateJwt, (req, res) => {
 });
 
 app.put('/admins/courses/:courseId', authenticateJwt, (req, res) => {
-    const courseId = parseInt(req.params.courseId); // Correct usage of parseInt
+    const courseId = parseInt(req.params.courseId);
     const courseIndex = COURSES.findIndex(c => c.id === courseId);
-    if (courseIndex > -1) {
+    if (courseIndex > -1) 
+    {
         const updatedCourse = { ...COURSES[courseIndex], ...req.body };
         COURSES[courseIndex] = updatedCourse;
+
+        console.log(`The course titled "${updatedCourse.title}" was updated by ${req.user.username}`);
         res.json({ message: "Course updated successfully" });
-    } else {
+    } 
+    else 
+    {
         res.status(404).json({ message: "Course not found" });
     }
 });
+
 
 app.get('/admins/courses', authenticateJwt, (req, res) => {
     res.json({ courses: COURSES });
@@ -117,13 +117,21 @@ app.post('/users/login', (req, res) => {
 app.post('/users/courses/:courseId', authenticateJwt, (req, res) => {
     const courseId = Number(req.params.courseId);
     const course = COURSES.find(c => c.id === courseId);
-    if (course) {
+    if (course) 
+    {
         // Find the user in the USERS array and update their purchased courses
         const userIndex = USERS.findIndex(u => u.username === req.user.username);
-        if (userIndex !== -1) {
+        if (userIndex !== -1) 
+        {
             USERS[userIndex].purchasedCourses.push(courseId);
+
+            // Log the course title and the username of the user who purchased it
+            console.log(`The course titled "${course.title}" was purchased by ${req.user.username}`);
+
             res.json({ message: "Course purchased successfully" });
-        } else {
+        } 
+        else 
+        {
             res.status(404).json({ message: "User not found" });
         }
     } else {
