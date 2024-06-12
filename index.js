@@ -11,6 +11,7 @@ let COURSES = [];
 
 const secret = "keyForEncryption"; 
 
+//mongoose schemas
 const userSchema = new mongoose.Schema({
     username: Strin,
     password: String,
@@ -30,6 +31,11 @@ const courseSchema = new mongoose.Schema({
     duration: string  
 })
 
+//mongoose models
+
+const User = mongoose.model("User", userSchema);
+const Admin = mongoose.model("Admin", adminSchema);
+const Course = mongoose.model("Course", courseSchema);
 
 const generateJwt = (user) => {
     const payload = { username: user.username };
