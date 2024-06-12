@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const app = express();
+const mongoose = require('mongoose');  //library that lets u connect to mongodb databases
 
 app.use(express.json());
 
@@ -8,7 +9,27 @@ let ADMINS = [];
 let USERS = [];
 let COURSES = [];
 
-const secret = "keyForEncryption";
+const secret = "keyForEncryption"; 
+
+const userSchema = new mongoose.Schema({
+    username: Strin,
+    password: String,
+    purchasedCourses: [{type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
+});
+
+const adminSchema = new mongoose.Schema({
+    username: String,
+    password: string 
+});
+
+const courseSchema = new mongoose.Schema({
+    title: string,
+    description: string,
+    price: Number,
+    imageLink: string,
+    duration: string  
+})
+
 
 const generateJwt = (user) => {
     const payload = { username: user.username };
