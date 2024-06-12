@@ -28,7 +28,8 @@ const courseSchema = new mongoose.Schema({
     description: string,
     price: Number,
     imageLink: string,
-    duration: string  
+    duration: string,
+    published: Boolean
 })
 
 //mongoose models
@@ -117,66 +118,76 @@ app.get('/admins/courses', authenticateJwt, async(req, res) => {
     res.json({ courses });
 });
 
-app.post('/users/signup', (req, res) => {
-    const user = { ...req.body, purchasedCourses: [] };
-    const existingUser = USERS.find(u => u.username === req.body.username)
-    if(existingUser)
+app.post('/users/signup', async (req, res) => {
+   const {username,password} = req.body;
+   const user =  await User.findOne({username});
+   if(user)
     {
-        res.json({message: "User already exists."});
+        res.status(403).json({message: "User already exists"});
     }
     else
     {
-        USERS.push(user);
-        const token = generateJwt(user);
-        res.json({ message: "User created successfully", token });
+        const newUser = new User({username, password});
+        await newUser.save();
+        const token = jwt.sign({username, role:'user'}, secret, {expiresIn: '1h'});
+        res.json({message: "User created successfully", token});
     }
 });
 
-app.post('/users/login', (req, res) => {
+app.post('/users/login', async(req, res) => {
     const {username, password} = req.headers;
-    const user = USERS.find(u => u.username === username && u.password === password)
+    const user = await user.findOne({username, password})
     if(user)
     {
-        const token = generateJwt(user);
+        const token = jwt.sign({username, role: 'user'}, secret, {expiresIn: '1h'});
         res.json({message: "User logged in successfully", token})
     }
-});
-
-app.post('/users/courses/:courseId', authenticateJwt, (req, res) => {
-    const courseId = Number(req.params.courseId);
-    const course = COURSES.find(c => c.id === courseId);
-    if (course) 
+    else
     {
-        // Find the user in the USERS array and update their purchased courses
-        const userIndex = USERS.findIndex(u => u.username === req.user.username);
-        if (userIndex !== -1) 
-        {
-            USERS[userIndex].purchasedCourses.push(courseId);
+        res.status(403).json({message: "Wrong User credentials"});
+    }
+});
 
-            // Log the course title and the username of the user who purchased it
+app.post('/users/courses/:courseId', authenticateJwt, async(req, res) => {
+    const course = await Course.findById(req.params.courseId);
+    if(course)
+    {
+        const user = await User.findOne({username: req.user.username});
+        if(user)
+        {
+            user.purchasedCourses.push(course);
+            await user.save();
             console.log(`The course titled "${course.title}" was purchased by ${req.user.username}`);
-
             res.json({ message: "Course purchased successfully" });
-        } 
-        else 
-        {
-            res.status(404).json({ message: "User not found" });
         }
-    } else {
-        res.status(404).json({ message: "Course not found or not published" });
+        else
+        {
+            res.status(403).json({message: "User not found"});
+        }
+    }
+    else
+    {
+        res.status(404).json({message: "Course not found"});
     }
 });
 
-
-app.get('/users/purchasedCourses', authenticateJwt, (req, res) => {
-    const user = USERS.find(u => u.username === req.user.username);
-    if (user) {
-        const purchasedCourses = COURSES.filter(course => user.purchasedCourses.includes(course.id));
-        res.json({ courses: purchasedCourses });
-    } else {
-        res.status(404).json({ message: "User not found" });
-    }
+//route to display all the available courses to the user
+app.get('/users/Courses', authenticateJwt, async(req, res) => {
+    const courses = await Course.find({published: true});
+    res.json({courses});
 });
+
+app.get('/users/purchasedCourses', authenticateJwt, async(req,res) => {
+    const user = await User.findOne({username: req.user.username}).populate('purchasedCourses');
+    if(user)
+    {
+        res.json({purchasedCourses: user.purchasedCourses || []});
+    }
+    else
+    {
+        res.status(403).json({message: "User not found"});
+    }
+})
 
 app.listen(3000, () => {
     console.log("Server is listening on port 3000");
