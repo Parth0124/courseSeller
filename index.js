@@ -13,22 +13,22 @@ const secret = "keyForEncryption";
 
 //mongoose schemas
 const userSchema = new mongoose.Schema({
-    username: Strin,
+    username: String,
     password: String,
     purchasedCourses: [{type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
 });
 
 const adminSchema = new mongoose.Schema({
     username: String,
-    password: string 
+    password: String 
 });
 
 const courseSchema = new mongoose.Schema({
-    title: string,
-    description: string,
+    title: String,
+    description: String,
     price: Number,
-    imageLink: string,
-    duration: string,
+    imageLink: String,
+    duration: String,
     published: Boolean
 })
 
