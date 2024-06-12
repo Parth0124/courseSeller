@@ -59,6 +59,9 @@ const authenticateJwt = (req, res, next) => {
     }
 };
 
+//connect to mongodb
+mongoose.connect('mongodb+srv://Parth0124:22bcs080@cluster0.z5z6ph1.mongodb.net/', {useNewUrlParser: true, useUnifiedTopology: true});
+
 app.post('/admins/signup', (req, res) => {
     const admin = req.body;
     const existingAdmin = ADMINS.find(a => a.username === admin.username);
