@@ -62,16 +62,17 @@ const authenticateJwt = (req, res, next) => {
 //connect to mongodb
 mongoose.connect('mongodb+srv://Parth0124:22bcs080@cluster0.z5z6ph1.mongodb.net/', {useNewUrlParser: true, useUnifiedTopology: true});
 
-app.post('/admins/signup', (req, res) => {
-    const admin = req.body;
-    const existingAdmin = ADMINS.find(a => a.username === admin.username);
-    if (existingAdmin) 
+app.post('/admins/signup', async(req, res) => {
+    const {username, password} = req.body;
+    const admin = await Admin.findOne({username})
+    if (admin) 
     {
         res.status(403).json({ message: "Admin already exists" });
     } 
     else 
     {
-        ADMINS.push(admin);
+        const newAdmin = new Admin({username,password});
+        await newAdmin.save()
         const token = generateJwt(admin);
         res.json({ message: "Admin created successfully", token });
     }
