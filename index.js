@@ -68,6 +68,7 @@ app.post('/admins/login', (req, res) => {
 
 app.post('/admins/courses', authenticateJwt, (req, res) => {
     const course = req.body;
+    console.log("The course of " + course.title + " was added by " + req.user.username) //gives back the username of the admin that added the course
     COURSES.push({ ...course, id: COURSES.length + 1 });
     res.json({ message: "Course created successfully", courseId: COURSES.length });
 });
