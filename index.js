@@ -78,11 +78,11 @@ app.post('/admins/signup', async(req, res) => {
     }
 });
 
-app.post('/admins/login', (req, res) => {
+app.post('/admins/login', async(req, res) => {
     const { username, password } = req.headers;
-    const admin = ADMINS.find(a => a.username === username && a.password === password);
+    const admin = await Admin.findOne({username, password});
     if (admin) {
-        const token = generateJwt(admin);
+        const token = jwt.sign({username, role: 'admin'}, secret, {expiresIn: '1h'});
         res.json({ message: "Admin logged in successfully", token });
     } 
     else 
@@ -91,33 +91,30 @@ app.post('/admins/login', (req, res) => {
     }
 });
 
-app.post('/admins/courses', authenticateJwt, (req, res) => {
-    const course = req.body;
+app.post('/admins/courses', authenticateJwt, async(req, res) => {
+    const course = new Course (req.body);
     console.log("The course of " + course.title + " was added by " + req.user.username) //gives back the username of the admin that added the course
-    COURSES.push({ ...course, id: COURSES.length + 1 });
+    await course.save();
     res.json({ message: "Course created successfully", courseId: COURSES.length });
 });
 
-app.put('/admins/courses/:courseId', authenticateJwt, (req, res) => {
-    const courseId = parseInt(req.params.courseId);
-    const courseIndex = COURSES.findIndex(c => c.id === courseId);
-    if (courseIndex > -1) 
+app.put('admin/courses/:courseId', authenticateJwt, async(req,res) => {
+    const course = await Course.findByIdAndUpdate(req.params.courseId, req.body, {new:true});
+    if(course)
     {
-        const updatedCourse = { ...COURSES[courseIndex], ...req.body };
-        COURSES[courseIndex] = updatedCourse;
-
         console.log(`The course titled "${updatedCourse.title}" was updated by ${req.user.username}`);
         res.json({ message: "Course updated successfully" });
-    } 
-    else 
-    {
-        res.status(404).json({ message: "Course not found" });
     }
-});
+    else
+    {
+        res.status(404).json({message: "Course not found"});
+    }
+})
 
 
-app.get('/admins/courses', authenticateJwt, (req, res) => {
-    res.json({ courses: COURSES });
+app.get('/admins/courses', authenticateJwt, async(req, res) => {
+    const courses = await Course.find({});
+    res.json({ courses });
 });
 
 app.post('/users/signup', (req, res) => {
