@@ -91,28 +91,55 @@ app.get('/admins/courses', authenticateJwt, (req, res) => {
 
 app.post('/users/signup', (req, res) => {
     const user = { ...req.body, purchasedCourses: [] };
-    USERS.push(user);
-    res.json({ message: "User created successfully" });
+    const existingUser = USERS.find(u => u.username === req.body.username)
+    if(existingUser)
+    {
+        res.json({message: "User already exists."});
+    }
+    else
+    {
+        USERS.push(user);
+        const token = generateJwt(user);
+        res.json({ message: "User created successfully", token });
+    }
 });
 
-app.post('/users/login', userAuthentication, (req, res) => {
-    res.json({ message: "User logged in successfully" });
+app.post('/users/login', (req, res) => {
+    const {username, password} = req.headers;
+    const user = USERS.find(u => u.username === username && u.password === password)
+    if(user)
+    {
+        const token = generateJwt(user);
+        res.json({message: "User logged in successfully", token})
+    }
 });
 
-app.post('/users/courses/:courseId', userAuthentication, (req, res) => {
+app.post('/users/courses/:courseId', authenticateJwt, (req, res) => {
     const courseId = Number(req.params.courseId);
     const course = COURSES.find(c => c.id === courseId);
     if (course) {
-        req.user.purchasedCourses.push(courseId);
-        res.json({ message: "Course purchased successfully" });
+        // Find the user in the USERS array and update their purchased courses
+        const userIndex = USERS.findIndex(u => u.username === req.user.username);
+        if (userIndex !== -1) {
+            USERS[userIndex].purchasedCourses.push(courseId);
+            res.json({ message: "Course purchased successfully" });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
     } else {
         res.status(404).json({ message: "Course not found or not published" });
     }
 });
 
-app.get('/users/purchasedCourses', userAuthentication, (req, res) => {
-    const purchasedCourses = COURSES.filter(c => req.user.purchasedCourses.includes(c.id));
-    res.json({ purchasedCourses });
+
+app.get('/users/purchasedCourses', authenticateJwt, (req, res) => {
+    const user = USERS.find(u => u.username === req.user.username);
+    if (user) {
+        const purchasedCourses = COURSES.filter(course => user.purchasedCourses.includes(course.id));
+        res.json({ courses: purchasedCourses });
+    } else {
+        res.status(404).json({ message: "User not found" });
+    }
 });
 
 app.listen(3000, () => {
